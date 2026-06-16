@@ -593,6 +593,18 @@ function github_ratelimit_reached {
 ### URL handling
 
 function handle_special_urls($url) {
+    # GitHub proxy - rewrite github.com download URLs if a proxy prefix is configured
+    if ($url -match '^https?://github\.com/') {
+        Write-Host "Download URL: $url" -ForegroundColor DarkGray
+        $github_proxy = get_config GITHUB_PROXY
+        if ($github_proxy) {
+            $url = "$($github_proxy.TrimEnd('/'))/$url"
+            Write-Host "Using proxy accelerator: $github_proxy" -ForegroundColor DarkCyan
+        } else {
+            Write-Host "Proxy accelerator: not configured (set 'scoop config github_proxy <url>' to enable)" -ForegroundColor DarkYellow
+        }
+    }
+
     # FossHub.com
     if ($url -match '^(?:.*fosshub.com\/)(?<name>.*)(?:\/|\?dwl=)(?<filename>.*)$') {
         $Body = @{
